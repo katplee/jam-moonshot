@@ -15,6 +15,16 @@ public class GameController : MonoBehaviour
     [SerializeField]
     private FrozenObjectsArray objArray;
 
+    [SerializeField]
+    private bool keyUp = false;
+    [SerializeField]
+    private bool keyUpPrime;
+
+    private void Update()
+    {
+        keyUp = false;
+    }
+
     private void FixedUpdate()
     {
         if (Input.GetMouseButtonDown(0))
@@ -25,6 +35,7 @@ public class GameController : MonoBehaviour
                 if (hit.collider)
                 {
                     Debug.Log("An object was hit!");
+                    
                     clickedObject = hit.collider.gameObject.GetComponent<UnidentifiedObject>();
                 }
             }            
@@ -38,6 +49,7 @@ public class GameController : MonoBehaviour
         {
             Debug.Log($"Detected key code: {e.keyCode}");
             SetToFreeze(e.keyCode);
+            keyUpPrime = !keyUp;            
         }
     }
 
