@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GameController : MonoBehaviour
+public class GameController : Singleton<GameController>
 {
     [SerializeField]
     private Camera camera;
@@ -15,31 +15,39 @@ public class GameController : MonoBehaviour
     [SerializeField]
     private FrozenObjectsArray objArray;
 
+    //GameObjects controlled by the modified update
+    public delegate void DoTasks();
+    public static event DoTasks OnModifiedUpdate;
     [SerializeField]
-    private bool keyUp = false;
-    [SerializeField]
-    private bool keyUpPrime;
+    private float updateRate;
 
-    private void Update()
+    void Start()
     {
-        keyUp = false;
+        InvokeRepeating("ModifiedUpdate", 0f, updateRate);
     }
 
     private void FixedUpdate()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            Ray ray = camera.ScreenPointToRay(Input.mousePosition);
-            if (Physics.Raycast(ray, out RaycastHit hit, Mathf.Infinity, clickObjectsLayer))
+            Vector3 point = camera.ScreenToWorldPoint(Input.mousePosition);
+            RaycastHit2D hit = Physics2D.Raycast(point, Vector3.zero, Mathf.Infinity, clickObjectsLayer);
+            if (hit.collider)
             {
-                if (hit.collider)
-                {
-                    Debug.Log("An object was hit!");
-                    
-                    clickedObject = hit.collider.gameObject.GetComponent<UnidentifiedObject>();
-                }
-            }            
+                Debug.Log("An object was hit!");
+
+                clickedObject = hit.collider.gameObject.GetComponent<UnidentifiedObject>();
+            }
         }
+    }
+
+    private void ModifiedUpdate()
+    {
+        if (OnModifiedUpdate != null)
+        {
+            OnModifiedUpdate();
+        }
+
     }
 
     private void OnGUI()
@@ -47,9 +55,19 @@ public class GameController : MonoBehaviour
         Event e = Event.current;
         if (e.isKey)
         {
-            Debug.Log($"Detected key code: {e.keyCode}");
-            SetToFreeze(e.keyCode);
-            keyUpPrime = !keyUp;            
+            if (Input.GetKeyDown(e.keyCode))
+            {
+                Debug.Log($"Detected key code: {e.keyCode}");
+                SetToFreeze(e.keyCode);
+                clickedObject = null;
+            }
+            else
+            {
+                if (Input.GetKeyUp(e.keyCode))
+                {
+                    Debug.Log($"Release key: {e.keyCode}");                    
+                }
+            }  
         }
     }
 
@@ -63,5 +81,5 @@ public class GameController : MonoBehaviour
                 clickedObject.transform.SetParent(objArray.transform);
             }
         }
-    }
+    }    
 }
