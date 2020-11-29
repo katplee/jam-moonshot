@@ -75,11 +75,17 @@ public class GameController : Singleton<GameController>
     {
         if (clickedObject)
         {
-            if (!objArray.FrozenArray.ContainsKey(clickedObject))
+            objArray.AddObject(clickedObject, keyCode);
+            clickedObject.transform.SetParent(objArray.transform);
+            /*
+            foreach (KeyValuePair<UnidentifiedObject, KeyCode> pair in objArray.FrozenArray)
             {
-                objArray.AddObject(clickedObject, keyCode);
-                clickedObject.transform.SetParent(objArray.transform);
+                if (pair.Key != clickedObject)
+                {
+                    
+                }
             }
+            */
         }
     }    
 }

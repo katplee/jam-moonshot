@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class UnidentifiedObject : MonoBehaviour
 {
@@ -9,62 +11,88 @@ public class UnidentifiedObject : MonoBehaviour
 
     [SerializeField]
     private Transform destination;
+    [SerializeField]
+    private int movementRate;
+    [SerializeField]
+    private float step;
 
+    [SerializeField]
+    private Transform frozenObjectsContainer;
     [SerializeField]
     private bool isFrozen = false;
     [SerializeField]
-    private Transform frozenObjectsContainer;
+    private float timeToDestroy = 3f;
+    [SerializeField]
+    private float timeUntilDestroy;
 
     // Start is called before the first frame update
     void Start()
     {
-        frozenObjectsContainer = Containers.Instance.frozenObjectsContainer;
-
         SpawnAtRandomPosition();
+        InitializeVariables();
+        GameController.OnModifiedUpdate += ModifiedUpdate;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        if(transform.parent == frozenObjectsContainer)
+        if (transform.parent == frozenObjectsContainer)
         {
+            isFrozen = true;
             Freeze();
-        }
-        else
-        {
-            isFrozen = false;
-            Move();
         }
     }
 
     private void ModifiedUpdate()
     {
+        if (!transform.parent == frozenObjectsContainer)
+        {
+            isFrozen = false;
+            Move();
+        }
+    }
+    private void SpawnAtRandomPosition()
+    {
+        float rad = UnityEngine.Random.Range(0f, 360f) * Mathf.Deg2Rad;
+        float objPos_x = Mathf.Cos(rad);
+        float objPos_y = Mathf.Sin(rad);
 
+        transform.position = new Vector3(objPos_x, objPos_y, 0) * spawnCircleRadius;
+    }
+    
+    private void InitializeVariables()
+    {
+        movementRate = Random.Range(7, 17);
+        step = Vector3.Distance(transform.position, destination.position) / movementRate;
+        frozenObjectsContainer = Containers.Instance.frozenObjectsContainer;
     }
 
     private void Move()
     {
         if (!isFrozen)
-        {
-            //float movement_z = -Time.deltaTime * 0.1f;
-            //transform.Translate(0f, 0f, movement_z);
-
-            transform.position = Vector3.MoveTowards(transform.position, destination.position, 0.1f * Time.deltaTime);
+        {               
+            transform.position = Vector3.MoveTowards(transform.position, destination.position, step);
+            timeUntilDestroy = timeToDestroy;
         }
     }
 
     private void Freeze()
     {
-        isFrozen = true;
-        transform.Translate(Vector3.zero);
+        if (isFrozen)
+        {
+            transform.Translate(Vector3.zero);
+            CountdownUntilDestroy();
+        }
     }
 
-    private void SpawnAtRandomPosition()
+    private void CountdownUntilDestroy()
     {
-        float rad = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-        float objPos_x = Mathf.Cos(rad);
-        float objPos_y = Mathf.Sin(rad);
+        timeUntilDestroy -= Time.deltaTime;
+        timeUntilDestroy = Mathf.Clamp(timeUntilDestroy, 0f, timeUntilDestroy);
 
-        transform.position = new Vector3(objPos_x, objPos_y, 0) * spawnCircleRadius;
+        if(timeUntilDestroy == 0)
+        {
+            GameController.OnModifiedUpdate -= ModifiedUpdate;
+            Destroy(gameObject);
+        }
     }
 }

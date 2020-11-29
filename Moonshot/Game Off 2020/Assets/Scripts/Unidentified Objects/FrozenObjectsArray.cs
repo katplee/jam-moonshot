@@ -5,39 +5,44 @@ using UnityEngine;
 public class FrozenObjectsArray : MonoBehaviour
 {
     [SerializeField]
-    public Dictionary<UnidentifiedObject, KeyCode> FrozenArray { get; set; }
+    //public Dictionary<UnidentifiedObject, KeyCode> FrozenArray { get; set; }
+
+    public List<KeyValuePair<UnidentifiedObject, KeyCode>> FrozenArray { get; set; }
 
     void Start()
     {
-        FrozenArray = new Dictionary<UnidentifiedObject, KeyCode>();
+        FrozenArray = new List<KeyValuePair<UnidentifiedObject, KeyCode>>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        foreach(Transform t in transform)
+        for (int i = 0; i < FrozenArray.Count; i++)
         {
-            UnidentifiedObject i = t.GetComponent<UnidentifiedObject>();
-            KeyCode keyCode = FrozenArray[i];
-
-            if (!Input.GetKey(keyCode))
+            if (!Input.GetKey(FrozenArray[i].Value))
             {
-                FrozenArray.Remove(i);
-                t.SetParent(null);
-                //Destroy(t.gameObject);
+                FrozenArray[i].Key.transform.SetParent(null);
+                FrozenArray.Remove(FrozenArray[i]);
             }
-        }
 
+            if (!FrozenArray[i].Key)
+            {
+                FrozenArray.Remove(FrozenArray[i]);
+            }
+        }        
+
+        /*
         //FOR DEBUG PURPOSES
         foreach(KeyValuePair<UnidentifiedObject, KeyCode> pair in FrozenArray)
         {
             Debug.Log(pair);
         }
+        */
     }
 
     public void AddObject(UnidentifiedObject obj, KeyCode keyCode)
     {
-        FrozenArray.Add(obj, keyCode);
+        FrozenArray.Add(new KeyValuePair<UnidentifiedObject, KeyCode>(obj, keyCode));
     }
 
 }

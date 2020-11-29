@@ -554,8 +554,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnCircleRadius: 3
   destination: {fileID: 1843782915}
-  isFrozen: 0
+  movementRate: 0
+  step: 0
   frozenObjectsContainer: {fileID: 0}
+  isFrozen: 0
+  timeToDestroy: 3
+  timeUntilDestroy: 0
 --- !u!212 &593982478
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -941,8 +945,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   spawnCircleRadius: 2
   destination: {fileID: 1843782915}
-  isFrozen: 0
+  movementRate: 0
+  step: 0
   frozenObjectsContainer: {fileID: 0}
+  isFrozen: 0
+  timeToDestroy: 3
+  timeUntilDestroy: 0
 --- !u!54 &749856020
 Rigidbody:
   m_ObjectHideFlags: 0
