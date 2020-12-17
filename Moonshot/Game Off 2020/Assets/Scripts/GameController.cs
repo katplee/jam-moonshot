@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 public class GameController : Singleton<GameController>
 {
@@ -15,6 +16,14 @@ public class GameController : Singleton<GameController>
     [SerializeField]
     private FrozenObjectsArray objArray;
 
+    [SerializeField]
+    private Transform movingObjectsContainer;
+    [SerializeField]
+    private int spawnRate;
+    [SerializeField]
+    private int cycles;
+
+
     //GameObjects controlled by the modified update
     public delegate void DoTasks();
     public static event DoTasks OnModifiedUpdate;
@@ -23,6 +32,7 @@ public class GameController : Singleton<GameController>
 
     void Start()
     {
+        InitializeVariables();
         InvokeRepeating("ModifiedUpdate", 0f, updateRate);
     }
 
@@ -43,11 +53,12 @@ public class GameController : Singleton<GameController>
 
     private void ModifiedUpdate()
     {
+        SpawnUFO();
+
         if (OnModifiedUpdate != null)
         {
             OnModifiedUpdate();
         }
-
     }
 
     private void OnGUI()
@@ -71,21 +82,42 @@ public class GameController : Singleton<GameController>
         }
     }
 
+    public void InitializeVariables()
+    {
+        movingObjectsContainer = Containers.Instance.movingObjectsContainer;
+        objArray = FrozenObjectsArray.Instance;
+        SetSpawnVariables();
+    }
+
+    private void SpawnUFO()
+    {
+        cycles++;
+
+        if(cycles == spawnRate)
+        {
+            GameObject go = Instantiate(Prefabs.Instance.UFOPrefab, movingObjectsContainer);
+            go.name = Prefabs.Instance.UFOPrefab.name;
+            SetSpawnVariables();
+        }
+    }
+
+    private void SetSpawnVariables()
+    {
+        spawnRate = Random.Range(1, 3);
+        cycles = 0;
+    }
+
     private void SetToFreeze(KeyCode keyCode)
     {
         if (clickedObject)
         {
-            objArray.AddObject(clickedObject, keyCode);
-            clickedObject.transform.SetParent(objArray.transform);
-            /*
-            foreach (KeyValuePair<UnidentifiedObject, KeyCode> pair in objArray.FrozenArray)
+            KeyValuePair<UnidentifiedObject, KeyCode> pair =
+                new KeyValuePair<UnidentifiedObject, KeyCode>(clickedObject, keyCode);
+            if (!objArray.Contains(pair))
             {
-                if (pair.Key != clickedObject)
-                {
-                    
-                }
+                objArray.AddObject(clickedObject, keyCode);
+                clickedObject.transform.SetParent(objArray.transform);
             }
-            */
         }
     }    
 }

@@ -6,8 +6,28 @@ using Random = UnityEngine.Random;
 
 public class UnidentifiedObject : MonoBehaviour
 {
+    public enum objectSize
+    {
+        tiny = 10,
+        small = 15,
+        big = 20
+    }
+
+    [SerializeField]
+    private objectSize size;
+    [SerializeField]
+    private KeyCode key;
+
+    [SerializeField]
+    private Spaceship spaceship;
     [SerializeField]
     private float spawnCircleRadius;
+    [SerializeField]
+    private float spaceshipRadius;
+    [SerializeField]
+    private float objectRadius;
+    [SerializeField]
+    private Vector3 colliderPosition;
 
     [SerializeField]
     private Transform destination;
@@ -18,10 +38,11 @@ public class UnidentifiedObject : MonoBehaviour
 
     [SerializeField]
     private Transform frozenObjectsContainer;
+    private FrozenObjectsArray objArray;
     [SerializeField]
     private bool isFrozen = false;
     [SerializeField]
-    private float timeToDestroy = 3f;
+    private float timeToDestroy = 5f;
     [SerializeField]
     private float timeUntilDestroy;
 
@@ -39,31 +60,55 @@ public class UnidentifiedObject : MonoBehaviour
         {
             isFrozen = true;
             Freeze();
+            DisplayKey();
+        }
+        else
+        {
+            isFrozen = false;
+            DisplayKey();
         }
     }
 
     private void ModifiedUpdate()
     {
-        if (!transform.parent == frozenObjectsContainer)
+        if (transform.parent != frozenObjectsContainer)
         {
-            isFrozen = false;
             Move();
         }
     }
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (collision.gameObject.name == "TempSpaceship")
+        {
+            //Play errupting animation
+            DestroyThis();
+            spaceship.HasCollided(size);
+        }
+    }
+
     private void SpawnAtRandomPosition()
     {
-        float rad = UnityEngine.Random.Range(0f, 360f) * Mathf.Deg2Rad;
+        float rad = Random.Range(0f, 360f) * Mathf.Deg2Rad;
         float objPos_x = Mathf.Cos(rad);
         float objPos_y = Mathf.Sin(rad);
 
         transform.position = new Vector3(objPos_x, objPos_y, 0) * spawnCircleRadius;
+        colliderPosition = new Vector3(objPos_x, objPos_y, 0);
     }
     
     private void InitializeVariables()
     {
+        spaceship = Spaceship.Instance;
+        spaceshipRadius = spaceship.ColliderRadius;
+        size = (objectSize)(Random.Range(2, 4) * 5f);
+        objectRadius = GetComponent<CircleCollider2D>().radius * transform.localScale.x;
+        colliderPosition *= (spaceshipRadius + objectRadius);
+        destination = Objects.Instance.destinationObject;
         movementRate = Random.Range(7, 17);
-        step = Vector3.Distance(transform.position, destination.position) / movementRate;
+        step = Vector3.Distance(transform.position, colliderPosition) / movementRate;
         frozenObjectsContainer = Containers.Instance.frozenObjectsContainer;
+        objArray = FrozenObjectsArray.Instance;
     }
 
     private void Move()
@@ -91,8 +136,23 @@ public class UnidentifiedObject : MonoBehaviour
 
         if(timeUntilDestroy == 0)
         {
-            GameController.OnModifiedUpdate -= ModifiedUpdate;
-            Destroy(gameObject);
+            spaceship.Add("hits");
+            spaceship.Add("money", (float)size);
+            DestroyThis();
+        }
+    }
+
+    private void DestroyThis()
+    {        
+        GameController.OnModifiedUpdate -= ModifiedUpdate;
+        Destroy(gameObject);
+    }
+
+    private void DisplayKey()
+    {
+        if(objArray.Evaluate(this, out key))
+        {
+            Debug.Log($"{this.name} : {key}");
         }
     }
 }

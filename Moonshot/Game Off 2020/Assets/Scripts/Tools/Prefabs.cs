@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Prefabs : Singleton<Containers>
+public class Prefabs : Singleton<Prefabs>
 {
-    public GameObject sliderPrefab;
-    public GameObject fillPrefab;
+    //public GameObject sliderPrefab;
+    //public GameObject fillPrefab;
+
+    public GameObject UFOPrefab;
 }

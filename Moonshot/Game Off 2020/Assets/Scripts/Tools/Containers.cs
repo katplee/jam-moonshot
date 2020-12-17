@@ -5,4 +5,5 @@ using UnityEngine;
 public class Containers : Singleton<Containers>
 {
     public Transform frozenObjectsContainer;
+    public Transform movingObjectsContainer;
 }
