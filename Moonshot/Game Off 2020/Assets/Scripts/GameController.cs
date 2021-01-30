@@ -32,6 +32,11 @@ public class GameController : Singleton<GameController>
 
     void Start()
     {
+
+
+
+
+
         InitializeVariables();
         InvokeRepeating("ModifiedUpdate", 0f, updateRate);
     }
